@@ -5,13 +5,10 @@
  */
 namespace Magento\Catalog\Model;
 
-use Magento\Authorization\Model\UserContextInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\CategoryInterface;
 use Magento\CatalogUrlRewrite\Model\CategoryUrlRewriteGenerator;
 use Magento\Framework\Api\AttributeValueFactory;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Convert\ConvertArray;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Profiler;
@@ -132,6 +129,8 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
         'page_layout',
         'custom_layout_update',
         'custom_apply_to_products',
+        'custom_layout_update_file',
+        'custom_use_parent_settings'
     ];
 
     /**
@@ -214,16 +213,6 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      * @var \Magento\Framework\Api\MetadataServiceInterface
      */
     protected $metadataService;
-
-    /**
-     * @var UserContextInterface
-     */
-    private $userContext;
-
-    /**
-     * @var AuthorizationInterface
-     */
-    private $authorization;
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -336,6 +325,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      */
     protected function _getResource()
     {
+        //phpcs:enable Generic.CodeAnalysis.UselessOverridingMethod
         return parent::_getResource();
     }
     // phpcs:enable
@@ -450,7 +440,9 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
         if ($this->flatState->isFlatEnabled()) {
             $flatIndexer = $this->indexerRegistry->get(Indexer\Category\Flat\State::INDEXER_ID);
             if (!$flatIndexer->isScheduled()) {
-                $flatIndexer->reindexList([$this->getId(), $oldParentId, $parentId]);
+                $sameLevelCategories = explode(',', $this->getParentCategory()->getChildren());
+                $list = array_unique(array_merge($sameLevelCategories, [$this->getId(), $oldParentId, $parentId]));
+                $flatIndexer->reindexList($list);
             }
         }
         $productIndexer = $this->indexerRegistry->get(Indexer\Category\Product::INDEXER_ID);
@@ -492,7 +484,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      * Retrieve all customer attributes
      *
      * @param bool $noDesignAttributes
-     * @return array
+     * @return \Magento\Eav\Api\Data\AttributeInterface[]
      * @todo Use with Flat Resource
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
@@ -761,7 +753,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Retrieve design attributes array
      *
-     * @return array
+     * @return \Magento\Eav\Api\Data\AttributeInterface[]
      */
     public function getDesignAttributes()
     {
@@ -1199,8 +1191,6 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
                 || $this->dataHasChangedFor('is_active')) {
             if (!$productIndexer->isScheduled()) {
                 $productIndexer->reindexList($this->getPathIds());
-            } else {
-                $productIndexer->invalidate();
             }
         }
     }
@@ -1358,6 +1348,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
 
     //@codeCoverageIgnoreEnd
 
+    // phpcs:disable PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames
     /**
      * Return Data Object data in array format.
      *
@@ -1366,6 +1357,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      */
     public function __toArray()
     {
+        // phpcs:enable PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames
         $data = $this->_data;
         $hasToArray = function ($model) {
             return is_object($model) && method_exists($model, '__toArray') && is_callable([$model, '__toArray']);

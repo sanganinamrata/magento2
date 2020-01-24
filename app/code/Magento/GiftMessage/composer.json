@@ -17,7 +17,8 @@
         "magento/module-ui": "101.1.*"
     },
     "suggest": {
-        "magento/module-multishipping": "100.3.*"
+        "magento/module-eav": "*",
+        "magento/module-multishipping": "*"
     },
     "type": "magento2-module",
     "license": [

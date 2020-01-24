@@ -6,11 +6,11 @@
 
 namespace Magento\CatalogSearch\Setup\Patch\Data;
 
+use Magento\Catalog\Api\ProductAttributeRepositoryInterface;
 use Magento\Framework\App\State;
+use Magento\Framework\Indexer\IndexerInterfaceFactory;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
-use Magento\Framework\Indexer\IndexerInterfaceFactory;
-use Magento\Catalog\Api\ProductAttributeRepositoryInterface;
 
 /**
  * @deprecated 101.0.0
@@ -18,6 +18,7 @@ use Magento\Catalog\Api\ProductAttributeRepositoryInterface;
  */
 class SetInitialSearchWeightForAttributes implements DataPatchInterface, PatchVersionInterface
 {
+
     /**
      * @var IndexerInterfaceFactory
      */
@@ -50,7 +51,7 @@ class SetInitialSearchWeightForAttributes implements DataPatchInterface, PatchVe
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function apply()
     {
@@ -60,13 +61,15 @@ class SetInitialSearchWeightForAttributes implements DataPatchInterface, PatchVe
         $this->state->emulateAreaCode(
             \Magento\Framework\App\Area::AREA_CRONTAB,
             function () use ($indexer) {
-                $indexer->reindexAll();
+                $indexer->getState()
+                    ->setStatus(\Magento\Framework\Indexer\StateInterface::STATUS_INVALID)
+                    ->save();
             }
         );
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getDependencies()
     {
@@ -74,7 +77,7 @@ class SetInitialSearchWeightForAttributes implements DataPatchInterface, PatchVe
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getVersion()
     {
@@ -82,7 +85,7 @@ class SetInitialSearchWeightForAttributes implements DataPatchInterface, PatchVe
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases()
     {

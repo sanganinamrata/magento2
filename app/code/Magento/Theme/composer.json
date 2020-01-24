@@ -19,10 +19,9 @@
         "magento/module-widget": "101.1.*"
     },
     "suggest": {
-        "magento/module-translation": "100.3.*",
-        "magento/module-theme-sample-data": "Sample Data version: 100.3.*",
-        "magento/module-deploy": "100.3.*",
-        "magento/module-directory": "100.3.*"
+        "magento/module-theme-sample-data": "*",
+        "magento/module-deploy": "*",
+        "magento/module-directory": "*"
     },
     "type": "magento2-module",
     "license": [
